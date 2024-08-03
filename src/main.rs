@@ -1,12 +1,11 @@
-use std::{net::SocketAddr, sync::Arc};
+use std::net::SocketAddr;
 
-use axum::{routing::get, Router};
 use clap::Parser;
+use clap_num::maybe_hex;
 use escpos::{driver::NativeUsbDriver, printer::Printer};
-use tokio::{
-    net::TcpListener,
-    sync::{mpsc, Mutex},
-};
+use tokio::{net::TcpListener, sync::mpsc};
+
+mod tasks;
 
 /// A little server-side application to control an ESC/POS printer.
 #[derive(Parser, Debug)]
@@ -16,34 +15,12 @@ struct Args {
     addr: SocketAddr,
 
     /// Printer vendor ID.
+    #[clap(value_parser = maybe_hex::<u16>)]
     vid: u16,
 
     /// Printer product ID.
+    #[clap(value_parser = maybe_hex::<u16>)]
     pid: u16,
-}
-
-enum Message {
-    Text { data: String },
-    Bitmap { data: Vec<u8> },
-    Cut { partial: bool },
-}
-
-async fn act<D: escpos::driver::Driver>(
-    printer: Printer<D>,
-    rx: mpsc::Receiver<Message>,
-) -> eyre::Result<()> {
-    loop {}
-}
-
-async fn serve(listener: TcpListener, tx: mpsc::Sender<Message>) -> eyre::Result<()> {
-    axum::serve(
-        listener,
-        Router::new()
-            .with_state(Arc::new(tx))
-            .route("/", get(|| async { "Hello, World!" })),
-    )
-    .await
-    .map_err(Into::into)
 }
 
 #[tokio::main]
@@ -59,8 +36,8 @@ async fn main() -> eyre::Result<()> {
     let (tx, rx) = mpsc::channel(1);
 
     tokio::try_join! {
-        act(printer, rx),
-        serve(listener, tx),
+        tasks::act(printer, rx),
+        tasks::serve(listener, tx),
     }?;
 
     Ok(())
