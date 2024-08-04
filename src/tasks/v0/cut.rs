@@ -2,7 +2,8 @@ use std::sync::Arc;
 
 use axum::{
     extract::{Query, State},
-    response::IntoResponse,
+    http::StatusCode,
+    response::Result,
 };
 use tokio::sync::mpsc;
 
@@ -10,18 +11,20 @@ use super::super::Message;
 
 #[derive(serde::Deserialize)]
 pub struct CutParams {
-    partial: Option<bool>,
+    #[serde(default)]
+    partial: bool,
 }
 
-pub async fn cut(
+pub async fn put(
     State(sender): State<Arc<mpsc::Sender<Message>>>,
     Query(query): Query<CutParams>,
-) -> impl IntoResponse {
+) -> Result<StatusCode> {
     sender
         .send(Message::Cut {
-            partial: query.partial.unwrap_or_default(),
+            partial: query.partial,
         })
-        .await;
+        .await
+        .unwrap();
 
-    "Cut\n"
+    Ok(StatusCode::ACCEPTED)
 }

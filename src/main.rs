@@ -7,6 +7,9 @@ use tokio::{net::TcpListener, sync::mpsc};
 
 mod tasks;
 
+const PRINTER_PIX_WIDTH: u32 = 576;
+const PRINTER_CHAR_WIDTH: usize = 48;
+
 /// A little server-side application to control an ESC/POS printer.
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

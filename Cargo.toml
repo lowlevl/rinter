@@ -10,9 +10,10 @@ clap = { version = "4.5.13", features = ["derive"] }
 clap-num = "1.1.1"
 eyre = "0.6.12"
 
-axum = { version = "0.7.5", features = ["macros"] }
+axum = { version = "0.7.5", features = ["macros", "multipart"] }
 tokio = { version = "1.39.2", features = ["rt-multi-thread"] }
 futures = "0.3.30"
 
 escpos = { version = "0.12.2", features = ["graphics", "native_usb"] }
 serde = { version = "1.0.204", features = ["derive"] }
+image = "0.25.2"
